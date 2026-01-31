@@ -1,11 +1,16 @@
-import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
+
     static void main() {
+        String destinationFolder = "C:\\Users\\Caique\\Downloads";
+        String baseUrl = "https://dadosabertos.ans.gov.br/FTP/PDA/";
+
         try {
-            //https://dadosabertos.ans.gov.br/FTP/PDA/demonstracoes_contabeis/2025/1T2025.zip
-            AbsDemonstracoesContabeisScraper abs = new AbsDemonstracoesContabeisScraper();
-            abs.donwloadFles();
+            AnsAPIScraper abs = new AnsAPIScraper(baseUrl);
+            abs.downloadFiles(destinationFolder);
+            abs.unzipFiles(destinationFolder, "file1");
         } catch (Exception e) {
             System.out.println(e);
         }

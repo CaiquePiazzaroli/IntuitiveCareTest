@@ -7,9 +7,26 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
 
-public class AbsDemonstracoesContabeisScraper {
-    public void donwloadFles() {
+public class AnsAPIScraper {
+
+    private final String baseURL;
+
+    AnsAPIScraper(String baseUrl) {
+        this.baseURL = baseUrl;
+    }
+
+    public void unzipFiles(String destinationFolder, String zipFileName) {
+        try {
+            FileZipExtrator.zipExtractor(destinationFolder, zipFileName);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+    }
+
+    public void downloadFiles(String destinationFolder) {
         List<String> urlFiles = scrapeZipUrls();
+
         int index = urlFiles.size() - 1;
         int count = 0;
         while (count < 3) {
@@ -20,16 +37,19 @@ public class AbsDemonstracoesContabeisScraper {
                 fileType = "csv";
             };
 
-            String downloadPath = FileExtractor.createDownloadsFolder();
+            String downloadPath = FileZipExtrator.createDirectory(destinationFolder);
+
             String fileDestination = String.format("%s\\file%d.%s", downloadPath, count, fileType);
+
             File out = new File(fileDestination);
+
             new Thread(new UrlFileDownloader(link, out)).start();
+
             count++;
             index--;
         }
+
     }
-
-
 
     public List<String> scrapeZipUrls() {
         try {
@@ -53,14 +73,13 @@ public class AbsDemonstracoesContabeisScraper {
     }
 
     public String resolveDemonstracoesPageUrl() throws Exception {
-        String BASE_URL = "https://dadosabertos.ans.gov.br/FTP/PDA/";
-        Document doc = Jsoup.connect(BASE_URL).get();
+        Document doc = Jsoup.connect(this.baseURL).get();
         Elements aTagElements = doc.select("a");
-        String demonstracoesContabeisHrefValue = extractDemonstracoesHref(aTagElements);
+        String demonstracoesContabeisHrefValue = extractDemonstracoesHrefValue(aTagElements);
         if(demonstracoesContabeisHrefValue == null) {
             throw new Exception("Termo nao encontrado");
         }
-        return BASE_URL + demonstracoesContabeisHrefValue;
+        return this.baseURL + demonstracoesContabeisHrefValue;
     }
 
     public String findMostRecentYear(Elements elements) {
@@ -76,7 +95,7 @@ public class AbsDemonstracoesContabeisScraper {
         throw new RuntimeException("Nenhum ano recente encontrado nos links.");
     }
 
-    public String extractDemonstracoesHref(Elements elements) throws Exception {
+    public String extractDemonstracoesHrefValue(Elements elements){
         for (Element aTag : elements) {
             String href = aTag.attr("href").toLowerCase();
             if (href.contains("demonstracoes") || href.contains("contabeis")) {
